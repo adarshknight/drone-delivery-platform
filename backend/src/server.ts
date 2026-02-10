@@ -36,7 +36,7 @@ app.get('/health', (req, res) => {
 setupWebSocket(httpServer);
 
 // Start server
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`🚁 Drone Delivery Backend running on port ${PORT}`);
     console.log(`📡 WebSocket server ready`);
     console.log(`🔗 API: http://localhost:${PORT}/api`);
