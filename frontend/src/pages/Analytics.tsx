@@ -1,6 +1,6 @@
 // Analytics Dashboard Page
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { TrendingUp, TrendingDown, Package, Plane, DollarSign, Clock, Battery, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useKPIStore } from '../stores/kpi-store';
 import { useDroneStore } from '../stores/drone-store';
@@ -8,11 +8,6 @@ import { useOrderStore } from '../stores/order-store';
 import { useKioskStore } from '../stores/kiosk-store';
 import { useRestaurantStore } from '../stores/restaurant-store';
 import { DroneStatus, OrderStatus } from '../types';
-
-interface TimeSeriesData {
-    timestamp: string;
-    value: number;
-}
 
 export const Analytics: React.FC = () => {
     const { metrics } = useKPIStore();
