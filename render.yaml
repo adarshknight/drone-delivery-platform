@@ -4,7 +4,6 @@ services:
     name: drone-delivery-backend
     env: node
     region: oregon
-    plan: free
     buildCommand: cd backend && npm install && npm run build
     startCommand: cd backend && npm start
     envVars:
@@ -17,7 +16,6 @@ services:
   - type: web
     name: drone-delivery-frontend
     env: static
-    plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     routes:
