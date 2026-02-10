@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Delivery Platform - Module Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .diagram-container {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagram-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        .description {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚁 Drone Delivery Platform - Module Diagrams</h1>
+
+    <h2>1. Simulation Engine Module</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Simulation Engine Update Loop</div>
+        <div class="description">
+            The Simulation Engine orchestrates the entire system, running a continuous update loop at 100ms intervals.
+            It coordinates all drone controllers, performs safety checks, and broadcasts updates to clients.
+        </div>
+        <div class="mermaid">
+            graph TB
+            A[Start Simulation] --> B[Initialize Controllers]
+            B --> C[Update Loop 100ms]
+            C --> D[Update All Drones]
+            D --> E[Check Collisions]
+            E --> F[Check No-Fly Zones]
+            F --> G[Check Low Battery]
+            G --> H[Assign Orders]
+            H --> I[Generate New Orders]
+            I --> J[Calculate KPIs]
+            J --> K[Broadcast Updates]
+            K --> C
+
+            style A fill:#4CAF50
+            style K fill:#2196F3
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <div class="diagram-title">Simulation Engine Context Diagram</div>
+        <div class="mermaid">
+            graph LR
+            WS[WebSocket Clients] -->|Commands| SE[Simulation Engine]
+            SE -->|Updates| WS
+            SE -->|Control| DC[Drone Controllers]
+            DC -->|Status| SE
+            SE -->|Read/Write| DS[Data Store]
+            SE -->|Check| NFZ[No-Fly Zones]
+            SE -->|Create| AL[Alerts]
+            SE -->|Log| EL[Event Logs]
+
+            style SE fill:#FF9800
+        </div>
+    </div>
+
+    <h2>2. Drone Controller Module</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Drone State Machine</div>
+        <div class="description">
+            Each drone operates as a state machine with 9 distinct states, transitioning based on battery levels,
+            order assignments, and emergency conditions.
+        </div>
+        <div class="mermaid">
+            stateDiagram-v2
+            [*] --> IDLE
+            IDLE --> CHARGING: Battery < 40% IDLE --> FLYING_TO_RESTAURANT: Order Assigned
+                CHARGING --> IDLE: Battery = 100%
+                FLYING_TO_RESTAURANT --> WAITING_FOR_PICKUP: Arrived
+                WAITING_FOR_PICKUP --> FLYING_TO_CUSTOMER: Pickup Complete
+                FLYING_TO_CUSTOMER --> DELIVERING: Arrived
+                DELIVERING --> RETURNING_TO_KIOSK: Delivery Complete
+                RETURNING_TO_KIOSK --> IDLE: Arrived at Kiosk
+                FLYING_TO_RESTAURANT --> EMERGENCY_LANDING: Battery Critical
+                FLYING_TO_CUSTOMER --> EMERGENCY_LANDING: Battery Critical
+                EMERGENCY_LANDING --> MAINTENANCE: Landed
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <div class="diagram-title">Order Execution Flowchart</div>
+        <div class="mermaid">
+            flowchart TD
+            A[Order Assigned] --> B[Calculate Flight Altitude]
+            B --> C[Set Route to Restaurant]
+            C --> D[Status: FLYING_TO_RESTAURANT]
+            D --> E{Arrived?}
+            E -->|No| F[Update Position]
+            F --> G[Drain Battery]
+            G --> H{Battery OK?}
+            H -->|Yes| E
+            H -->|No| I[Emergency Return]
+            E -->|Yes| J[Status: WAITING_FOR_PICKUP]
+            J --> K[Wait 30 seconds]
+            K --> L[Pickup Order]
+            L --> M[Set Route to Customer]
+            M --> N[Status: FLYING_TO_CUSTOMER]
+            N --> O{Arrived?}
+            O -->|No| P[Update Position]
+            P --> Q[Drain Battery]
+            Q --> R{Battery OK?}
+            R -->|Yes| O
+            R -->|No| I
+            O -->|Yes| S[Status: DELIVERING]
+            S --> T[Deliver Order]
+            T --> U[Return to Kiosk]
+
+            style A fill:#4CAF50
+            style T fill:#2196F3
+            style I fill:#F44336
+        </div>
+    </div>
+
+    <h2>3. Pathfinding System Module</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Pathfinding Algorithm Flow</div>
+        <div class="description">
+            The pathfinding system uses the Haversine formula for accurate distance calculations and implements
+            altitude layering based on flight direction to reduce collision risks.
+        </div>
+        <div class="mermaid">
+            graph TB
+            A[Start & End Positions] --> B[Calculate Distance]
+            B --> C[Calculate Bearing]
+            C --> D{Check No-Fly Zones}
+            D -->|Violation| E[Add Avoidance Waypoint]
+            D -->|Clear| F[Direct Route]
+            E --> G[Calculate Flight Altitude]
+            F --> G
+            G --> H{Bearing Analysis}
+            H -->|N/S 315-45° or 135-225°| I[Altitude = 80m]
+            H -->|E/W 45-135° or 225-315°| J[Altitude = 100m]
+            I --> K[Return Optimized Route]
+            J --> K
+
+            style A fill:#4CAF50
+            style K fill:#2196F3
+        </div>
+    </div>
+
+    <h2>4. Battery Model Module</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Battery Drain Calculation</div>
+        <div class="description">
+            Battery consumption is calculated based on multiple factors: base consumption (1% per km),
+            payload weight, altitude, and weather conditions.
+        </div>
+        <div class="mermaid">
+            graph TD
+            A[Flight Segment] --> B[Base Consumption<br />1% per km]
+            A --> C[Payload Factor<br />0.3% × weight × distance]
+            A --> D[Altitude Factor<br />0.2% × altitude/100 × distance]
+            A --> E[Weather Multiplier<br />1.0x to 2.0x]
+            B --> F[Sum Factors]
+            C --> F
+            D --> F
+            F --> G[Apply Weather Multiplier]
+            E --> G
+            G --> H[Total Battery Drain]
+
+            style A fill:#4CAF50
+            style H fill:#F44336
+        </div>
+    </div>
+
+    <h2>5. WebSocket Communication</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Real-Time Update Sequence</div>
+        <div class="description">
+            WebSocket enables bidirectional real-time communication between clients and server,
+            with updates broadcast every 100ms for drone positions and every 2 seconds for KPIs.
+        </div>
+        <div class="mermaid">
+            sequenceDiagram
+            participant C as Client
+            participant WS as WebSocket Server
+            participant SE as Simulation Engine
+            participant DS as Data Store
+
+            C->>WS: Connect
+            WS->>C: Connection Acknowledged
+            C->>WS: simulation:start
+            WS->>SE: Start Simulation
+
+            loop Every 100ms
+            SE->>DS: Get Drone Positions
+            DS->>SE: Drone Data
+            SE->>WS: Broadcast Updates
+            WS->>C: drone:update
+            end
+
+            loop Every 2s
+            SE->>WS: KPI Metrics
+            WS->>C: kpi:update
+            end
+
+            SE->>WS: New Alert
+            WS->>C: alert:new
+        </div>
+    </div>
+
+    <h2>6. Order Lifecycle</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Order State Transitions</div>
+        <div class="mermaid">
+            stateDiagram-v2
+            [*] --> PENDING: Order Created
+            PENDING --> ASSIGNED: Drone Assigned
+            ASSIGNED --> PICKED_UP: At Restaurant
+            PICKED_UP --> IN_TRANSIT: Flying to Customer
+            IN_TRANSIT --> DELIVERED: Delivery Complete
+            DELIVERED --> [*]
+
+            PENDING --> CANCELLED: User Cancels
+            ASSIGNED --> FAILED: Battery Critical
+            PICKED_UP --> FAILED: Emergency
+            IN_TRANSIT --> FAILED: Emergency
+        </div>
+    </div>
+
+    <h2>7. System Integration</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">Complete System Architecture</div>
+        <div class="description">
+            The complete system architecture showing how all frontend and backend modules interact
+            through WebSocket and REST API communication layers.
+        </div>
+        <div class="mermaid">
+            graph TB
+            subgraph Frontend
+            F1[Dashboard]
+            F2[Live Map]
+            F3[Orders]
+            F4[Drones]
+            F5[Auth]
+            end
+
+            subgraph Communication
+            WS[WebSocket<br />Socket.IO]
+            API[REST API<br />Express]
+            end
+
+            subgraph Backend
+            SE[Simulation<br />Engine]
+            DC[Drone<br />Controllers]
+            PF[Pathfinding]
+            BM[Battery<br />Model]
+            DS[Data<br />Store]
+            end
+
+            F1 --> WS
+            F2 --> WS
+            F3 --> WS
+            F4 --> WS
+            F1 --> API
+            F3 --> API
+
+            WS --> SE
+            API --> DS
+            SE --> DC
+            DC --> PF
+            DC --> BM
+            DC --> DS
+            SE --> DS
+
+            style SE fill:#FF9800
+            style WS fill:#2196F3
+        </div>
+    </div>
+
+    <h2>8. Data Store Structure</h2>
+    <div class="diagram-container">
+        <div class="diagram-title">In-Memory Data Store</div>
+        <div class="mermaid">
+            graph TB
+            A[Data Store] --> B[Drones Map<br />40 entries]
+            A --> C[Orders Map<br />Dynamic]
+            A --> D[Kiosks Map<br />30 entries]
+            A --> E[Restaurants Map<br />52 entries]
+            A --> F[Alerts Map<br />Dynamic]
+            A --> G[Event Logs Array<br />Dynamic]
+            A --> H[No-Fly Zones Map<br />Static]
+
+            style A fill:#9C27B0
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+
+</html>
