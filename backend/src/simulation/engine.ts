@@ -278,30 +278,14 @@ export class SimulationEngine {
     }
 
     private checkNoFlyZoneViolations() {
-        const noFlyZones = dataStore.getAllNoFlyZones();
-
-        dataStore.getAllDrones().forEach(drone => {
-            if (drone.status === DroneStatus.IDLE || drone.status === DroneStatus.CHARGING) return;
-
-            const violation = checkNoFlyZoneViolation(drone.position, noFlyZones);
-            if (violation) {
-                this.createAlert({
-                    id: `alert-${Date.now()}-${drone.id}`,
-                    type: AlertType.NO_FLY_ZONE_VIOLATION,
-                    severity: violation.severity,
-                    message: `${drone.name} entered no-fly zone: ${violation.name}`,
-                    timestamp: new Date(),
-                    relatedEntityId: drone.id,
-                    isResolved: false,
-                    resolvedAt: null,
-                });
-            }
-        });
+        // No-fly zone alerts disabled per user request
+        // Drones still avoid no-fly zones via pathfinding, but no alerts are generated
     }
 
     private checkLowBatteryAlerts() {
         dataStore.getAllDrones().forEach(drone => {
-            if (drone.battery < 20 && drone.battery > 0 && drone.status !== DroneStatus.CHARGING) {
+            // Only alert when battery is critically low (<10%)
+            if (drone.battery < 10 && drone.battery > 0 && drone.status !== DroneStatus.CHARGING) {
                 // Check if alert already exists
                 const existingAlert = Array.from(dataStore.alerts.values()).find(
                     a => a.type === AlertType.LOW_BATTERY && a.relatedEntityId === drone.id && !a.isResolved
@@ -311,8 +295,8 @@ export class SimulationEngine {
                     this.createAlert({
                         id: `alert-${Date.now()}-${drone.id}`,
                         type: AlertType.LOW_BATTERY,
-                        severity: drone.battery < 10 ? AlertSeverity.CRITICAL : AlertSeverity.WARNING,
-                        message: `${drone.name} has low battery: ${drone.battery.toFixed(1)}%`,
+                        severity: AlertSeverity.CRITICAL,
+                        message: `${drone.name} has critically low battery: ${drone.battery.toFixed(1)}%`,
                         timestamp: new Date(),
                         relatedEntityId: drone.id,
                         isResolved: false,
