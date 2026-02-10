@@ -357,26 +357,8 @@ export class SimulationEngine {
     }
 
     private handleCollisionRisk(drone1: Drone, drone2: Drone, distance: number) {
-        // Create alert (only if not already alerted in last 5 seconds)
-        const recentAlert = Array.from(dataStore.alerts.values()).find(
-            a => a.type === AlertType.COLLISION_RISK &&
-                (a.relatedEntityId === drone1.id || a.relatedEntityId === drone2.id) &&
-                !a.isResolved &&
-                (Date.now() - a.timestamp.getTime()) < 5000
-        );
-
-        if (!recentAlert) {
-            this.createAlert({
-                id: `alert-collision-${Date.now()}`,
-                type: AlertType.COLLISION_RISK,
-                severity: AlertSeverity.CRITICAL,
-                message: `Collision risk: ${drone1.name} and ${drone2.name} (${(distance * 1000).toFixed(0)}m apart)`,
-                timestamp: new Date(),
-                relatedEntityId: drone1.id,
-                isResolved: false,
-                resolvedAt: null,
-            });
-        }
+        // Collision alerts disabled per user request
+        // Collision avoidance still active - drones will adjust altitude to avoid each other
 
         // Avoidance: Adjust altitude if at same height
         if (Math.abs(drone1.position.altitude - drone2.position.altitude) < 10) {
