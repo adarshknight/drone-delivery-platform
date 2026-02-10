@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plane, Lock, User } from 'lucide-react';
 import { useAuthStore } from '../stores/auth-store';
 import { socketService } from '../services/socket';
+import { UserRole } from '../types';
 
 export const Login: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -19,9 +20,9 @@ export const Login: React.FC = () => {
 
         // Mock authentication - in real app would use socket
         const mockUsers = [
-            { id: 'user-1', username: 'admin', password: 'admin', role: 'ADMIN' as const },
-            { id: 'user-2', username: 'restaurant1', password: 'rest123', role: 'RESTAURANT_OPERATOR' as const },
-            { id: 'user-3', username: 'kiosk1', password: 'kiosk123', role: 'KIOSK_OPERATOR' as const },
+            { id: 'user-1', username: 'admin', password: 'admin', role: UserRole.ADMIN },
+            { id: 'user-2', username: 'restaurant1', password: 'rest123', role: UserRole.RESTAURANT_OPERATOR },
+            { id: 'user-3', username: 'kiosk1', password: 'kiosk123', role: UserRole.KIOSK_OPERATOR },
         ];
 
         const user = mockUsers.find(u => u.username === username && u.password === password);
