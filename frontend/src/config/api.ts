@@ -1,9 +1,6 @@
-// Backend// API Configuration
+// API Configuration
 
 export const API_CONFIG = {
-    // Local development URL
-    BACKEND_URL: 'http://localhost:3001',
-
-    // Cloudflare Tunnel URL (for production/sharing)
-    // BACKEND_URL: 'https://sleeps-unable-alerts-athletic.trycloudflare.com',
+    // Use environment variable in production, localhost in development
+    BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001',
 };
